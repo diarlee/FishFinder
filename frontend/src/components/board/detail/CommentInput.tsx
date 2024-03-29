@@ -62,10 +62,10 @@ export default function CommentInput({boardId}:CommentInputProps) {
         e.preventDefault();
         axiosInstance.post(`/api/board/comment/${boardId}`,
                 {
-                    'content' : value
+                    content : value
                 }
             )
-            .then((res : AxiosResponse)=>{console.log(res)})
+            .then((res : AxiosResponse)=>{console.log(res.data)})
             .catch(error => {throw new Error(error.message)})
     }
     
