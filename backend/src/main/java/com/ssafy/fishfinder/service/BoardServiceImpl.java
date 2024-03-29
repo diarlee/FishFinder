@@ -459,7 +459,7 @@ public class BoardServiceImpl implements BoardService{
      * @return List<BoardDto.GetListResponse>
      */
     @Override
-    public List<BoardDto.GetListResponse> getScrapList(Long memberId, LocalDateTime createdAt) {
+    public List<BoardDto.GetListResponse> getMyScrapList(Long memberId, LocalDateTime createdAt) {
         // 멤버 조회
         Member member = memberRepository.findById(memberId).orElseThrow(()->new CustomException(ErrorCode.NO_MEMBER));
 
@@ -563,6 +563,46 @@ public class BoardServiceImpl implements BoardService{
 
         // 내 게시글 조회
         List<Post> posts = boardRepository.findTop10ByWriterIdAndCreatedAtIsLessThanOrderByCreatedAtDesc(memberId, createdAt);
+
+        List<BoardDto.GetListResponse> response = new ArrayList<>();
+
+        posts.forEach(post -> {
+            String writer = "";
+            if(memberRepository.findById(post.getWriterId()).isPresent()) {
+                writer = memberRepository.findById(post.getWriterId()).get().getNickname();
+            }
+
+            response.add(BoardDto.GetListResponse.builder()
+                    .boardId(post.getId())
+                    .title(post.getTitle())
+                    .content(post.getContent())
+                    .writer(writer)
+                    .postType(post.getPostType())
+                    .thumbnail(post.getThumbnail())
+                    .likeCount(post.getLikes().size())
+                    .scrapCount(post.getClippings().size())
+                    .commentCount(post.getComments().size())
+                    .createdAt(post.getCreatedAt())
+                    .build()
+            );
+        });
+
+        return response;
+    }
+
+    /**
+     * 내가 댓글간 글 조회
+     * @param memberId
+     * @param createdAt
+     * @return
+     */
+    @Override
+    public List<BoardDto.GetListResponse> getMyCommentList(Long memberId, LocalDateTime createdAt) {
+        // 멤버 조회
+        Member member = memberRepository.findById(memberId).orElseThrow(()->new CustomException(ErrorCode.NO_MEMBER));
+
+        // 내가 댓글단 글 조회
+        List<Post> posts = boardRepository.findTop10Comment(memberId, createdAt);
 
         List<BoardDto.GetListResponse> response = new ArrayList<>();
 

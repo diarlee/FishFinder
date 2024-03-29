@@ -25,11 +25,13 @@ public interface BoardService {
 
     String scrapBoard(Long id, Long memberId);
 
-    List<BoardDto.GetListResponse> getScrapList(Long memberId, LocalDateTime createdAt);
+    List<BoardDto.GetListResponse> getMyScrapList(Long memberId, LocalDateTime createdAt);
 
     List<BoardDto.GetListResponse> getPopularBoardList();
 
     BoardDto.RecordResponse getRecord(Long memberId);
 
     List<BoardDto.GetListResponse> getMyPostList(Long memberId, LocalDateTime createdAt);
+
+    List<BoardDto.GetListResponse> getMyCommentList(Long memberId, LocalDateTime createdAt);
 }
