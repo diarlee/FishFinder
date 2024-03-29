@@ -25,7 +25,7 @@ public interface BoardService {
 
     String scrapBoard(Long id, Long memberId);
 
-    List<BoardDto.GetListResponse> getScrapList(Long memberId);
+    List<BoardDto.GetListResponse> getScrapList(Long memberId, LocalDateTime createdAt);
 
     List<BoardDto.GetListResponse> getPopularBoardList();
 

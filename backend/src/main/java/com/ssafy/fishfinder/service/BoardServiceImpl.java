@@ -454,24 +454,17 @@ public class BoardServiceImpl implements BoardService{
     }
 
     /**
-     * 스크랩 목록 조회
+     * 내스크랩 목록 조회
      * @param memberId
      * @return List<BoardDto.GetListResponse>
      */
     @Override
-    public List<BoardDto.GetListResponse> getScrapList(Long memberId) {
+    public List<BoardDto.GetListResponse> getScrapList(Long memberId, LocalDateTime createdAt) {
         // 멤버 조회
         Member member = memberRepository.findById(memberId).orElseThrow(()->new CustomException(ErrorCode.NO_MEMBER));
 
-        // 스크랩 조회
-        List<Clipping> clippings = clippingRepository.findAllByMemberId(memberId);
-
-        List<Post> posts = new ArrayList<>();
-
-        // 스크랩된 게시글 조회
-        clippings.forEach(clipping -> {
-            posts.add(clipping.getPost());
-        });
+        // 스크랩한 게시물 목록 조회
+        List<Post> posts = boardRepository.findTop10Clipping(memberId, createdAt);
 
         List<BoardDto.GetListResponse> response = new ArrayList<>();
 

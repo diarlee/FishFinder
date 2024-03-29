@@ -168,9 +168,10 @@ public class BoardController {
         return ResponseEntity.ok(new Message(boardService.scrapBoard(id, memberId)));
     }
 
-    @GetMapping("/scrap")
+    @GetMapping("/my-scrap")
     public ResponseEntity<Message> getScrapList(
-            HttpServletRequest request
+            HttpServletRequest request,
+            @RequestParam(value = "lastCreatedAt", required = false, defaultValue = "#{T(java.time.LocalDateTime).now()}") LocalDateTime lastCreatedAt
     ) {
         HttpSession session = request.getSession(false);
         if(session.getAttribute("id") == null) {
@@ -178,7 +179,7 @@ public class BoardController {
         }
         Long memberId = (Long) session.getAttribute("id");
 
-        return ResponseEntity.ok(new Message("스크랩 목록 조회 완료", boardService.getScrapList(memberId)));
+        return ResponseEntity.ok(new Message("스크랩 목록 조회 완료", boardService.getScrapList(memberId, lastCreatedAt)));
     }
 
     @GetMapping("/popular")
@@ -186,7 +187,7 @@ public class BoardController {
         return ResponseEntity.ok(new Message("인기 게시글 목록 조회 완료", boardService.getPopularBoardList()));
     }
 
-    @GetMapping("/mypost")
+    @GetMapping("/my-post")
     public ResponseEntity<Message> getMyPostList(
             HttpServletRequest request,
             @RequestParam(value = "lastCreatedAt", required = false, defaultValue = "#{T(java.time.LocalDateTime).now()}") LocalDateTime lastCreatedAt
