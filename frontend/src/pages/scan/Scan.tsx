@@ -3,14 +3,22 @@ import styled from "styled-components";
 import Sheet from "react-modal-sheet";
 import { useNavigate } from "react-router-dom";
 
+import ScanBox from "../../components/scan/ScanFishBox";
 import CameraButton from "../../assets/icons/scanCamera.png";
 import { gray3, gray5 } from "../../assets/styles/palettes";
 
-import data from "../../services/dummy/Fish.json";
+// import data from "../../services/dummy/Fish.json";
 // import boxdata from "../../services/dummy/fishScan.json";
 
 import { axiosInstance } from "../../services/axios";
 import { AxiosResponse } from "axios";
+
+interface FishScanData {
+  class: number;
+  class_name: string;
+  confidence: number;
+  bbox: number[];
+}
 
 const Wrapper = styled.div`
   width: 100%;
@@ -45,6 +53,7 @@ const Contents = styled.div`
 const VideoBox = styled.div`
   width: 100%;
   height: 75vh;
+  position: relative;
 
   /* & > video {
     width: 100%;
@@ -90,8 +99,9 @@ const FishInfo = styled.div`
 `;
 
 const Image = styled.img`
-  width: 80%;
-  object-fit: cover;
+  height: 15vh;
+  /* width: 80%;
+  object-fit: cover; */
   margin-bottom: 10px;
 `;
 
@@ -117,7 +127,7 @@ export default function Scan() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const photoRef = useRef<HTMLCanvasElement>(null);
   const [photoTaken, setPhotoTaken] = useState(false);
-
+  const [boxdata, setBoxData] = useState<FishScanData[]>([]);
   useEffect(() => {
     const video = videoRef.current;
     const photo = photoRef.current;
@@ -139,7 +149,6 @@ export default function Scan() {
 
   const getVideo = () => {
     // 미디어 설정에서 후면 카메라를 지정
-
     const constraints = {
       video: { facingMode: "environment" },
     };
@@ -150,9 +159,12 @@ export default function Scan() {
         // video 태그의 소스로 스트림을 지정
         const video = videoRef.current;
         if (video) {
-          video.pause();
           video.srcObject = stream;
-          video.play();
+          video.oncanplay = () => {
+            video.play().catch((error) => {
+              console.error("Failed to play video:", error);
+            });
+          };
         } else {
           console.error("Video element not found.");
         }
@@ -201,11 +213,12 @@ export default function Scan() {
       photo.height
     );
 
+    video.pause();
     // canvas에서 이미지 데이터 가져오기 (예: PNG 형식)
     const imageData = photo.toDataURL("image/png");
     const base64Data = imageData.split(",")[1];
+    console.log(imageData);
     console.log(base64Data); // 이 데이터를 사용하거나 저장
-    video.pause();
 
     //data 백으로 보내기
     axiosInstance
@@ -213,7 +226,8 @@ export default function Scan() {
         photoStr: base64Data,
       })
       .then((res: AxiosResponse) => {
-        console.log(res.data.data);
+        console.log(res.data[0]);
+        setBoxData(res.data[0]);
       })
       .catch((error) => {
         throw new Error(error.message);
@@ -222,7 +236,25 @@ export default function Scan() {
     setPhotoTaken(true);
   };
 
-  getVideo();
+  useEffect(() => {
+    getVideo();
+  }, []);
+
+  const [fishdata, setFishData] = useState({
+    name: "",
+    otherPrice: 0,
+    ourPrice: 0,
+    imgUri: "",
+    fishId: 0,
+  });
+
+  const OpenSheet = (fishId: number) => {
+    axiosInstance.get(`/api/fishes/${fishId}`).then((res: AxiosResponse) => {
+      setFishData(res.data.data);
+
+      setOpen(true);
+    });
+  };
 
   const [isOpen, setOpen] = useState(false);
   // const ref = useRef<SheetRef>();
@@ -231,7 +263,7 @@ export default function Scan() {
   const handleSnap = (snapIndex: number) => {
     if (snapIndex === 0) {
       // 페이지 이동
-      navigate("/info/1");
+      navigate(`/info/${fishdata.fishId}`);
     }
   };
 
@@ -261,6 +293,19 @@ export default function Scan() {
               objectFit: "contain",
             }}
           ></canvas>
+          {boxdata &&
+            boxdata.map((data, index) => (
+              <ScanBox
+                key={index}
+                x={data.bbox[0] - data.bbox[2] / 2}
+                y={data.bbox[1] - data.bbox[3] / 2}
+                width={data.bbox[2] * 1}
+                height={data.bbox[3] * 1}
+                onClickScanBox={() => {
+                  OpenSheet(data.class);
+                }}
+              ></ScanBox>
+            ))}
         </VideoBox>
         <ScanButton
           style={{ display: photoTaken ? "none" : "block" }}
@@ -272,18 +317,11 @@ export default function Scan() {
           <span>물고기를 촬영하여</span> <span>정보와 시세를 확인하세요</span>
         </Info>
 
-        {/* {boxdata &&
-          boxdata.map((data, index) => (
-            <button onClick={() => setOpen(true)} key={index}>
-              Open sheet
-            </button>
-          ))} */}
-
         <Sheet
           isOpen={isOpen}
           onClose={() => setOpen(false)}
           detent="content-height"
-          snapPoints={[1200, 750]}
+          snapPoints={[1200, 800]}
           onSnap={handleSnap}
           initialSnap={1}
         >
@@ -291,8 +329,8 @@ export default function Scan() {
             <Sheet.Header />
             <Sheet.Content>
               <FishInfo>
-                <Image src={data.imgUri} />
-                <p>{data.name}</p>
+                <Image src={fishdata.imgUri} />
+                <p>{fishdata.name}</p>
                 <Table>
                   <thead>
                     <tr>
@@ -310,8 +348,8 @@ export default function Scan() {
                   <tbody>
                     <tr>
                       <Td>1kg 당</Td>
-                      <Td> {data.otherPrice}원~</Td>
-                      <Td> {data.ourPrice}원~</Td>
+                      <Td> {fishdata.otherPrice}원~</Td>
+                      <Td> {fishdata.ourPrice}원~</Td>
                     </tr>
                   </tbody>
                 </Table>
