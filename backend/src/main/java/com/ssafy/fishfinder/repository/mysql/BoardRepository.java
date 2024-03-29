@@ -26,4 +26,6 @@ public interface BoardRepository extends JpaRepository<Post, Long> {
     List<Post> findTop4PopularBoardList();
 
     List<Post> findAllByWriterId(Long writerId);
+
+    List<Post> findTop10ByWriterIdAndCreatedAtIsLessThanOrderByCreatedAtDesc(Long writerId, LocalDateTime createdAt);
 }

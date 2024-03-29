@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -554,6 +555,46 @@ public class BoardServiceImpl implements BoardService{
                 .commentCount(commentCount)
                 .scrapCount(scrapCount)
                 .build();
+    }
+
+    /**
+     * 내 게시글 조회
+     * @param memberId
+     * @param createdAt
+     * @return List<BoardDto.GetListResponse>
+     */
+    @Override
+    public List<BoardDto.GetListResponse> getMyPostList(Long memberId, LocalDateTime createdAt) {
+        // 멤버 조회
+        Member member = memberRepository.findById(memberId).orElseThrow(()->new CustomException(ErrorCode.NO_MEMBER));
+
+        // 내 게시글 조회
+        List<Post> posts = boardRepository.findTop10ByWriterIdAndCreatedAtIsLessThanOrderByCreatedAtDesc(memberId, createdAt);
+
+        List<BoardDto.GetListResponse> response = new ArrayList<>();
+
+        posts.forEach(post -> {
+            String writer = "";
+            if(memberRepository.findById(post.getWriterId()).isPresent()) {
+                writer = memberRepository.findById(post.getWriterId()).get().getNickname();
+            }
+
+            response.add(BoardDto.GetListResponse.builder()
+                    .boardId(post.getId())
+                    .title(post.getTitle())
+                    .content(post.getContent())
+                    .writer(writer)
+                    .postType(post.getPostType())
+                    .thumbnail(post.getThumbnail())
+                    .likeCount(post.getLikes().size())
+                    .scrapCount(post.getClippings().size())
+                    .commentCount(post.getComments().size())
+                    .createdAt(post.getCreatedAt())
+                    .build()
+            );
+        });
+
+        return response;
     }
 
     /**

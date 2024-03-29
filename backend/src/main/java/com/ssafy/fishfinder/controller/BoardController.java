@@ -186,6 +186,20 @@ public class BoardController {
         return ResponseEntity.ok(new Message("인기 게시글 목록 조회 완료", boardService.getPopularBoardList()));
     }
 
+    @GetMapping("/mypost")
+    public ResponseEntity<Message> getMyPostList(
+            HttpServletRequest request,
+            @RequestParam(value = "lastCreatedAt", required = false, defaultValue = "#{T(java.time.LocalDateTime).now()}") LocalDateTime lastCreatedAt
+    ) {
+        HttpSession session = request.getSession(false);
+        if(session.getAttribute("id") == null) {
+            throw new CustomException(ErrorCode.NO_LOGIN);
+        }
+        Long memberId = (Long) session.getAttribute("id");
+
+        return ResponseEntity.ok(new Message("내가 작성한 게시글 목록 조회 완료", boardService.getMyPostList(memberId, lastCreatedAt)));
+    }
+
     @GetMapping("/record")
     public ResponseEntity<Message> getRecordBoardList(
             HttpServletRequest request
