@@ -65,7 +65,7 @@ export default function CommentInput({boardId}:CommentInputProps) {
                     content
                 }
             )
-            .then((res : AxiosResponse)=>{console.log(res)})
+            .then((res : AxiosResponse)=>{console.log(res.data)})
             .catch(error => {throw new Error(error.message)})
     }
     
