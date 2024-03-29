@@ -8,9 +8,9 @@ import PopularPosts from '../../components/main/PopularPosts';
 import { NavBarWrapper } from '../../components/common/Wrapper';
 
 const StyledWrapper = styled(NavBarWrapper)`
-  width : 100%;
-  margin :0;
-`
+  width: 100%;
+  margin: 0;
+`;
 
 export default function Main() {
     
