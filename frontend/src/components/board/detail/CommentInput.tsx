@@ -4,10 +4,12 @@ import styled from 'styled-components'
 import {  gray3, gray1 } from '../../../assets/styles/palettes'
 import CommentAdd from '../../../assets/icons/commentAdd.svg';
 import { axiosInstance } from '../../../services/axios';
-import { AxiosResponse } from 'axios';
+import { userStore } from '../../../stores/userStore';
 
 interface CommentInputProps{
     boardId : string | undefined
+    change : boolean
+    setChange : (e : boolean) => void
 }
 
 const Wrapper = styled.div`
@@ -55,25 +57,31 @@ const Button = styled.button`
     background-color: transparent;
 `
 
-export default function CommentInput({boardId}:CommentInputProps) {
-    const [value, setValue] = useState<string>("")
+export default function CommentInput({boardId, change, setChange}:CommentInputProps) {
+    const [content, setContent] = useState<string>("")
+    const {userId} = userStore();
 
-    const onSubmit = (e : React.FormEvent<HTMLFormElement>) => {
+    const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        axiosInstance.post(`/api/board/comment/${boardId}`,
-                {
-                    content : value
-                }
-            )
-            .then((res : AxiosResponse)=>{console.log(res.data)})
+
+        const formData = new FormData();
+        formData.append('content', content);
+        formData.append('writerId', userId.toString());
+
+        axiosInstance.post(`/api/board/comment/${boardId}`, formData)
+            .then(()=>{
+                setChange(!change)
+                setContent('');
+            })
             .catch(error => {throw new Error(error.message)})
+        
     }
     
     return (
         <Wrapper>
             <Form onSubmit={onSubmit}>
-                <Input placeholder='댓글을 입력해주세요.' name = "userComment"value = {value} onChange={e=> setValue(e.target.value)}></Input>
-                <Button>
+                <Input placeholder='댓글을 입력해주세요.' type ='text' name = "content" value = {content} onChange={e=> setContent(e.target.value)}></Input>
+                <Button type="submit">
                     <Image
                         src = {CommentAdd}
                     ></Image>

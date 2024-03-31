@@ -7,13 +7,13 @@ import searchPrimaryIcon from "../../assets/icons/searchPrimary.svg";
 import valueDelete from "../../assets/icons/valueDelete.svg";
 
 type SearchBoxProps = {
-  width: string;
-  name: string;
-  margin: string;
-  value: string;
-  setValue(value: string): void;
-  handleSubmit(): void;
-};
+    width : string,
+    name : string,
+    margin : string,
+    value : string,
+    setValue(value : string) : void,
+    handleSubmit(e : React.FormEvent<HTMLFormElement>) : void,
+}
 
 const Outline = styled.div<{
   width: string;

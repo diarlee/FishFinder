@@ -13,6 +13,7 @@ import { BoardType } from '../../components/common/board/BoardContainer'
 
 import { axiosInstance } from '../../services/axios'
 import { AxiosResponse } from 'axios'
+import { userStore } from '../../stores/userStore'
 
 
 
@@ -90,6 +91,7 @@ export default function Board() {
   const [isOpen, setIsOpen] = useState(false);
   const [sort, setSort] = useState("최신순");
   const [boards, setBoards] = useState<BoardType[]>([]);
+  const {userId} = userStore();
   const navigate = useNavigate();
 
   const onClickRadio = (name : string) => {
@@ -101,12 +103,17 @@ export default function Board() {
     setIsOpen(!isOpen);
   }
 
-  const handleSubmit = () =>{
-    console.log({value})
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    axiosInstance.get(`/api/board?keyword=${value}`)
+      .then((res:AxiosResponse) => {
+        setBoards(res.data.data)
+      })
   }
 
   const onClickRegisterBtn = () => {
-    navigate("/board/register")
+    if(userId == -1) navigate("/login")
+    else navigate("/board/register")
   }
 
   useEffect(()=>{
@@ -131,7 +138,6 @@ export default function Board() {
       url += "?sortBy=likeCount&postType=review"
     }
 
-    console.log(url)
     axiosInstance.get(url)
       .then((res:AxiosResponse) => {
         setBoards(res.data.data)
@@ -149,7 +155,7 @@ export default function Board() {
           margin = '5% 1% 5% 0'
           value = {value}
           setValue={setValue}
-          handleSubmit={handleSubmit}
+          handleSubmit={(e : React.FormEvent<HTMLFormElement>)=>handleSubmit(e)}
         ></SearchBox>
         <Button
           width = '20%'

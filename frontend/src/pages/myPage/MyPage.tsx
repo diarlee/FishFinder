@@ -10,9 +10,19 @@ import { BoardType } from "../../components/common/board/BoardContainer";
 
 import { axiosInstance } from "../../services/axios";
 import { AxiosResponse } from "axios";
+import { userStore } from "../../stores/userStore";
+import { useNavigate } from "react-router-dom";
 
 interface TagBoxProps {
   active: boolean;
+}
+
+interface Record{
+  "memberId" : number, // 사용자 id
+  "nickname" : string, // 사용자 닉네임
+  "postCount" : number, // 글 작성 횟수
+  "commentCount" : number, // 댓글 단 횟수
+  "scrapCount" : number 
 }
 
 const Wrapper = styled(NavBarWrapper)`
@@ -96,27 +106,72 @@ const Contents = styled.div`
   margin: 0% 5% 0% 5%;
 `;
 
+const LogoutBtn = styled.div`
+  font-size: 15px;
+  color : white;
+  text-decoration: underline;
+  position : fixed;
+  top : 30px;
+  right : 10px;
+`
+
 export default function MyPage() {
   const [activeTab, setActiveTab] = useState("작성글");
   const [boards, setBoards] = useState<BoardType[]>([]);
+  const {setUserId, nickname, setNickName} = userStore();
+  const [record, setRecord] = useState<Record>();
+  const navigate = useNavigate()
 
-  useEffect(()=>{
-    axiosInstance.get('/api/board')
+  const getBoard = (url : string) => {
+    axiosInstance.get(`/api/board/${url}`)
       .then((res:AxiosResponse) => {
         setBoards(res.data.data)
       })
+  }
+
+  useEffect(()=>{
+    getBoard('my-post')
+
+    axiosInstance.get('/api/board/my-record')
+      .then((res : AxiosResponse) => {
+        setRecord(res.data.data)
+      })
   },[])
+
+  useEffect(()=>{
+    if(activeTab ==="작성글"){
+      getBoard('my-post')
+    }
+    else if(activeTab === "댓글단 글"){
+      getBoard('my-comment')
+    }
+    else{
+      getBoard('my-scrap')
+    }
+  }, [activeTab])
+
+  const onClickLogoutBtn = () => {
+    axiosInstance.get('/api/users/logout')
+      .then((res : AxiosResponse) => {
+        console.log(res.data.message);
+        setUserId(-1);
+        setNickName("")
+        navigate("/")
+      })
+      .catch(error => {throw new Error(error.message)})
+  }
   return (
     <Wrapper width = '100%' height="auto" margin="0">
       <Header>
         <ImageContainer src={marketImage1} alt="노량진" />
         <GradientOverlay></GradientOverlay>
         <Profile>
+          <LogoutBtn onClick={onClickLogoutBtn}>로그아웃</LogoutBtn>
           <NicknameBox>
-            <Nickname>좌랑둥이님</Nickname>
+            <Nickname>{nickname}님</Nickname>
             <img src={EditIcon} alt="" />
           </NicknameBox>
-          <span>작성글 8 | 작성댓글 12 | 스크랩한 글 11</span>
+          <span>작성글 {record?.postCount} | 작성댓글 {record?.commentCount} | 스크랩한 글 {record?.scrapCount}</span>
         </Profile>
       </Header>
       <Contents>
