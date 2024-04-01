@@ -16,6 +16,7 @@ import MarketCondition from "./pages/marketCondition/MarketCondition";
 import Login from "./pages/login/Login";
 import OAuth from "./pages/login/OAuth";
 import NickName from "./components/common/Nickname";
+import Tutorial from "./pages/tutorial/Tutorial";
 
 const Wrapper = styled.div`
   font-family: Pretendard;
@@ -24,12 +25,11 @@ const Wrapper = styled.div`
 `;
 
 function App() {
-
-  useEffect(()=>{
-    if(!localStorage.getItem('RecentSearch')){
-      localStorage.setItem('RecentSearch', JSON.stringify([]));
+  useEffect(() => {
+    if (!localStorage.getItem("RecentSearch")) {
+      localStorage.setItem("RecentSearch", JSON.stringify([]));
     }
-  },[])
+  }, []);
 
   return (
     <Wrapper>
@@ -40,7 +40,7 @@ function App() {
             <Route path="board" element={<Board />} />
             <Route path="search" element={<Search />} />
             <Route path="mypage" element={<MyPage />} />
-            <Route path="login" element = {<Login/>}/>
+            <Route path="login" element={<Login />} />
           </Route>
           <Route path="board">
             <Route path=":boardId" element={<BoardDetail />} />
@@ -49,16 +49,17 @@ function App() {
           <Route path="info">
             <Route path=":fishId" element={<Info />} />
           </Route>
-          <Route path = "marketCondition">
-              <Route path = ":fishId" element  = {<MarketCondition/>}/>
+          <Route path="marketCondition">
+            <Route path=":fishId" element={<MarketCondition />} />
           </Route>
           <Route path="scan" element={<Scan />} />
           <Route path="oauth">
-            <Route path = "callback">
-              <Route path = "kakao" element = {<OAuth/>}/>
+            <Route path="callback">
+              <Route path="kakao" element={<OAuth />} />
             </Route>
           </Route>
-          <Route path = "nickname" element = {<NickName/>}/>
+          <Route path="nickname" element={<NickName />} />
+          <Route path="tutorial" element={<Tutorial />} />
         </Routes>
       </BrowserRouter>
     </Wrapper>
