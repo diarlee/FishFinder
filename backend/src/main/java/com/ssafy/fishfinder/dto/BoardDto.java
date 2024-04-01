@@ -49,6 +49,7 @@ public class BoardDto {
         private int likeCount;
         private LocalDateTime createdAt;
         private PostType postType;
+        private String keyword;
     }
 
     @Getter
@@ -115,6 +116,16 @@ public class BoardDto {
         private String writerNickname;
         private LocalDateTime createdAt;
         private String content;
+    }
+
+    @Setter @Getter
+    @Builder
+    public static class RecordResponse{
+        private Long memberId;
+        private String nickname;
+        private int postCount;
+        private int commentCount;
+        private int scrapCount;
     }
 
 }

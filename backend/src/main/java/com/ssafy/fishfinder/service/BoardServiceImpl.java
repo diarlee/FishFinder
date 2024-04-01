@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class BoardServiceImpl implements BoardService{
     private final S3UploadService s3UploadService;
 
     private final BoardRepository boardRepository;
+    private final FishRepository fishRepository;
     private final FishReviewRepository fishReviewRepository;
     private final MemberRepository memberRepository;
     private final PostImagesRepository postImagesRepository;
@@ -80,9 +82,9 @@ public class BoardServiceImpl implements BoardService{
 
         List<Post> result = new ArrayList<>();
         if(request.getSortBy().equals("createdAt")) {
-            result = boardRepository.findTop10BoardListByCreatedAt(request.getCreatedAt(), postTypes, request.getLimit());
+            result = boardRepository.findTop10BoardListByCreatedAt(request.getCreatedAt(), postTypes, request.getLimit(), '%' + request.getKeyword() + '%');
         } else if(request.getSortBy().equals("likeCount")) {
-            result = boardRepository.findTop10BoardListByLikeCount(request.getLikeCount(), postTypes, request.getLimit());
+            result = boardRepository.findTop10BoardListByLikeCount(request.getLikeCount(), postTypes, request.getLimit(), '%' + request.getKeyword() + '%');
         }
 
         List<BoardDto.GetListResponse> response = new ArrayList<>();
@@ -146,14 +148,15 @@ public class BoardServiceImpl implements BoardService{
         List<FishReview> reviews = fishReviewRepository.findAllByPostId(id);
         List<FishReviewDto.Response> reviewList = new ArrayList<>();
         reviews.forEach(review -> {
-            reviewList.add(FishReviewDto.Response.builder()
+            fishRepository.findById(review.getFishId()).ifPresent(fish -> reviewList.add(FishReviewDto.Response.builder()
                     .reviewId(review.getId())
+                    .fishName(fish.getName())
                     .fishId(review.getFishId())
                     .weight(review.getWeight())
                     .pricePerKg(review.getPricePerKg())
                     .totalPrice(review.getTotalPrice())
                     .build()
-            );
+            ));
         });
 
         // 이미지 가져오기
@@ -203,22 +206,27 @@ public class BoardServiceImpl implements BoardService{
 
     /**
      * 게시글 수정
-     * @param id
+     * @param boardId
      * @param request
      * @param images
      * @return BoardDto.CreateResponse
      */
     @Override
-    public BoardDto.CreateResponse updateBoard(Long id, BoardDto.UpdateRequest request, List<MultipartFile> images) {
+    public BoardDto.CreateResponse updateBoard(Long boardId, Long memberId, BoardDto.UpdateRequest request, List<MultipartFile> images) {
+        // 게시글 작성자 확인
+        Post postWriter = boardRepository.findById(boardId).orElseThrow(()->new CustomException(ErrorCode.NO_BOARD));
+        if(!postWriter.getWriterId().equals(memberId)){
+            throw new CustomException(ErrorCode.NO_WRITER);
+        }
 
         // 게시글 가져오기
-        Post post = boardRepository.findById(id).orElseThrow(()->new CustomException(ErrorCode.NO_BOARD));
+        Post post = boardRepository.findById(boardId).orElseThrow(()->new CustomException(ErrorCode.NO_BOARD));
 
         // review 가져오기
-        List<FishReview> fishReviews = fishReviewRepository.findAllByPostId(id);
+        List<FishReview> fishReviews = fishReviewRepository.findAllByPostId(boardId);
 
         // 이미지 가져오기
-        List<PostImages> postImages = postImagesRepository.findAllByPostId(id);
+        List<PostImages> postImages = postImagesRepository.findAllByPostId(boardId);
 
         // 삭제된 리뷰 삭제
         fishReviews.forEach(review ->{
@@ -272,11 +280,15 @@ public class BoardServiceImpl implements BoardService{
 
     /**
      * 게시글 삭제
-     * @param id
+     * @param boardId
      */
     @Override
-    public void deleteBoard(Long id) {
-        Post post = boardRepository.findById(id).orElseThrow(()->new CustomException(ErrorCode.NO_BOARD));
+    public void deleteBoard(Long boardId, Long memberId) {
+        // 게시글 작성자 확인
+        Post post = boardRepository.findById(boardId).orElseThrow(()->new CustomException(ErrorCode.NO_BOARD));
+        if(!post.getWriterId().equals(memberId)){
+            throw new CustomException(ErrorCode.NO_WRITER);
+        }
 
         // 연관된 리뷰 삭제
         if(post.getFishReviews() != null) {
@@ -353,7 +365,14 @@ public class BoardServiceImpl implements BoardService{
      * @param commentId
      */
     @Override
-    public void deleteComment(Long commentId) {
+    public void deleteComment(Long commentId, Long memberId) {
+        // 댓글 작성자 확인
+        Comment comment = commentRepository.findById(commentId).
+                orElseThrow(()->new CustomException(ErrorCode.NO_COMMENT));
+        if(!comment.getWriterId().equals(memberId)){
+            throw new CustomException(ErrorCode.NO_WRITER);
+        }
+
         commentRepository.deleteById(commentId);
     }
 
@@ -435,24 +454,17 @@ public class BoardServiceImpl implements BoardService{
     }
 
     /**
-     * 스크랩 목록 조회
+     * 내스크랩 목록 조회
      * @param memberId
      * @return List<BoardDto.GetListResponse>
      */
     @Override
-    public List<BoardDto.GetListResponse> getScrapList(Long memberId) {
+    public List<BoardDto.GetListResponse> getMyScrapList(Long memberId, LocalDateTime createdAt) {
         // 멤버 조회
         Member member = memberRepository.findById(memberId).orElseThrow(()->new CustomException(ErrorCode.NO_MEMBER));
 
-        // 스크랩 조회
-        List<Clipping> clippings = clippingRepository.findAllByMemberId(memberId);
-
-        List<Post> posts = new ArrayList<>();
-
-        // 스크랩된 게시글 조회
-        clippings.forEach(clipping -> {
-            posts.add(clipping.getPost());
-        });
+        // 스크랩한 게시물 목록 조회
+        List<Post> posts = boardRepository.findTop10Clipping(memberId, createdAt);
 
         List<BoardDto.GetListResponse> response = new ArrayList<>();
 
@@ -485,6 +497,112 @@ public class BoardServiceImpl implements BoardService{
     public List<BoardDto.GetListResponse> getPopularBoardList() {
         // 7일 이내 썸네일이 있는 게시글 Top4 조회
         List<Post> posts = boardRepository.findTop4PopularBoardList();
+
+        List<BoardDto.GetListResponse> response = new ArrayList<>();
+
+        posts.forEach(post -> {
+            String writer = "";
+            if(memberRepository.findById(post.getWriterId()).isPresent()) {
+                writer = memberRepository.findById(post.getWriterId()).get().getNickname();
+            }
+
+            response.add(BoardDto.GetListResponse.builder()
+                    .boardId(post.getId())
+                    .title(post.getTitle())
+                    .content(post.getContent())
+                    .writer(writer)
+                    .postType(post.getPostType())
+                    .thumbnail(post.getThumbnail())
+                    .likeCount(post.getLikes().size())
+                    .scrapCount(post.getClippings().size())
+                    .commentCount(post.getComments().size())
+                    .createdAt(post.getCreatedAt())
+                    .build()
+            );
+        });
+
+        return response;
+    }
+
+
+    /**
+     * 내 기록 조회
+     * @param memberId
+     * @return BoardDto.RecordResponse
+     */
+    @Override
+    public BoardDto.RecordResponse getRecord(Long memberId) {
+        // 멤버 조회
+        Member member = memberRepository.findById(memberId).orElseThrow(()->new CustomException(ErrorCode.NO_MEMBER));
+        // 게시글 수 조회
+        int postCount = boardRepository.findAllByWriterId(memberId).size();
+        // 댓글 수 조회
+        int commentCount = commentRepository.findAllByWriterId(memberId).size();
+        // 스크랩 수 조회
+        int scrapCount = clippingRepository.findAllByMemberId(memberId).size();
+
+        return BoardDto.RecordResponse.builder()
+                .memberId(memberId)
+                .nickname(member.getNickname())
+                .postCount(postCount)
+                .commentCount(commentCount)
+                .scrapCount(scrapCount)
+                .build();
+    }
+
+    /**
+     * 내 게시글 조회
+     * @param memberId
+     * @param createdAt
+     * @return List<BoardDto.GetListResponse>
+     */
+    @Override
+    public List<BoardDto.GetListResponse> getMyPostList(Long memberId, LocalDateTime createdAt) {
+        // 멤버 조회
+        Member member = memberRepository.findById(memberId).orElseThrow(()->new CustomException(ErrorCode.NO_MEMBER));
+
+        // 내 게시글 조회
+        List<Post> posts = boardRepository.findTop10ByWriterIdAndCreatedAtIsLessThanOrderByCreatedAtDesc(memberId, createdAt);
+
+        List<BoardDto.GetListResponse> response = new ArrayList<>();
+
+        posts.forEach(post -> {
+            String writer = "";
+            if(memberRepository.findById(post.getWriterId()).isPresent()) {
+                writer = memberRepository.findById(post.getWriterId()).get().getNickname();
+            }
+
+            response.add(BoardDto.GetListResponse.builder()
+                    .boardId(post.getId())
+                    .title(post.getTitle())
+                    .content(post.getContent())
+                    .writer(writer)
+                    .postType(post.getPostType())
+                    .thumbnail(post.getThumbnail())
+                    .likeCount(post.getLikes().size())
+                    .scrapCount(post.getClippings().size())
+                    .commentCount(post.getComments().size())
+                    .createdAt(post.getCreatedAt())
+                    .build()
+            );
+        });
+
+        return response;
+    }
+
+    /**
+     * 내가 댓글간 글 조회
+     * @param memberId
+     * @param createdAt
+     * @return
+     */
+    @Override
+    public List<BoardDto.GetListResponse> getMyCommentList(Long memberId, LocalDateTime createdAt) {
+        // 멤버 조회
+        Member member = memberRepository.findById(memberId).orElseThrow(()->new CustomException(ErrorCode.NO_MEMBER));
+
+        // 내가 댓글단 글 조회
+        List<Post> posts = boardRepository.findTop10Comment(memberId, createdAt);
 
         List<BoardDto.GetListResponse> response = new ArrayList<>();
 

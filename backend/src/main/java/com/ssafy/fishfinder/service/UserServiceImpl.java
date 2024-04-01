@@ -34,6 +34,7 @@ public class UserServiceImpl implements UserService {
         }
         UserDto userDto = UserDto.toUserDto(member);
         userDto.setCreatedNow(false);
+
         return userDto;
     }
 
@@ -51,6 +52,11 @@ public class UserServiceImpl implements UserService {
         return UserDto.toUserDto(member);
     }
 
+    /**
+     * 유저 정보 삭제
+     *
+     * @param id
+     */
     @Override
     public void deleteMember(Long id) {
         Member member = memberRepository.findById(id).orElseThrow(() -> new CustomException(ErrorCode.NO_MEMBER));
