@@ -58,8 +58,17 @@ function App() {
               <Route path="kakao" element={<OAuth />} />
             </Route>
           </Route>
-          <Route path="nickname" element={<NickName />} />
           <Route path="tutorial" element={<Tutorial />} />
+          <Route path="nickname">
+            <Route
+              path=""
+              element={<NickName title="닉네임을 변경해주세요" url="/mypage" />}
+            />
+            <Route
+              path="signup"
+              element={<NickName title="회원가입을 완료해주세요." url="/" />}
+            />
+          </Route>
         </Routes>
       </BrowserRouter>
     </Wrapper>

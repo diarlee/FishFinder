@@ -9,6 +9,7 @@ interface ReviewTableProps{
 interface review{
     reviewId : number
     fishId : number
+    fishName : string
     weight : number
     pricePerKg : number
     totalPrice : number
@@ -45,12 +46,12 @@ export default function ReviewTable({reviews} : ReviewTableProps) {
                 <Th>구매가격</Th>
             </Thead>
             <tbody>
-                {reviews && reviews.map((review => (
-                <>
-                    <Td>{review.fishId}</Td>
+                {reviews && reviews.map(((review, index) => (
+                <tr key = {index}>
+                    <Td>{review.fishName}</Td>
                     <Td>{review.weight}</Td>
                     <Td>{review.totalPrice}</Td>
-                </>
+                </tr>
                 )))}
             </tbody>
         </Table>

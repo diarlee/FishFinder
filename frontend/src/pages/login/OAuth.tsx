@@ -17,13 +17,15 @@ export default function OAuth() {
                     setNickName(res.data.data.nickname)
 
                     if(res.status == 201){
-                        navigate("/nickname")
+                        navigate("/nickname/signup")
+                    }
+                    else{
+                        navigate("/")
                     }
                 })
                 .catch(error => {
                     console.log(queryParam.get("code"))
                     throw new Error(error)})
-            navigate("/")
         }
         fetchUser();
     },[])

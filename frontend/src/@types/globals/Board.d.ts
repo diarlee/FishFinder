@@ -29,5 +29,20 @@ type PostAction = {
   setContent: (content: string) => void;
   setReviews: (reviews: Review[]) => void;
   setImages: (images: ImageFile[]) => void;
-  handleSubmit: () => number;
+  async handleSubmit: () => number;
 };
+
+type ReviewFormType = {
+  id : number
+  review : {
+      name : string
+      pricePerKg : string
+      totalPrice : string
+      weight : string
+  }
+}
+
+type FishData = {
+  fishId : number,
+  name : string
+}

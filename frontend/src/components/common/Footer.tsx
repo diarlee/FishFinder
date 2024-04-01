@@ -2,12 +2,17 @@ import React from "react";
 import styled from "styled-components";
 
 import HomeIcon from "../../assets/icons/home.svg";
+import HomeIconPrimary from "../../assets/icons/footerHomePrimary.svg";
 import ScanIcon from "../../assets/icons/footerScan.svg";
 import MyIcon from "../../assets/icons/footerMy.svg";
+import MyIconPrimary from "../../assets/icons/footerMyPrimary.svg";
 import BoardIcon from "../../assets/icons/footerBoard.svg";
+import BoardIconPrimary from "../../assets/icons/footerBoardPrimary.svg";
 import SearchIcon from "../../assets/icons/footerSearch.svg";
+import SearchIconPrimary from "../../assets/icons/footerSearchPrimary.svg";
+
 import { gray4, primary } from "../../assets/styles/palettes";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { userStore } from "../../stores/userStore";
 
 const Wrapper = styled.div`
@@ -41,54 +46,86 @@ const Wrapper = styled.div`
 
 const Block = styled(Link)`
   width: 20%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-decoration: none;
 `;
 
+const ImageContainer = styled.div`
+  width: 100%;
+  height: 70%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const HomeIconImage = styled.img`
+  width: 40%;
+`;
+
 const Image = styled.img`
-  padding: 20% 20% 10% 20%;
   width: 45%;
 `;
 
-const Title = styled.div`
+const Title = styled.div<{ isActivePage: boolean }>`
+  display: flex;
+  height: 20%;
+  justify-content: center;
+  align-items: center;
   font-family: Pretendard;
   font-size: 11px;
-  margin-bottom: 10%;
-  color: ${gray4};
+  color: ${(props) => (props.isActivePage ? primary : gray4)};
+  font-weight: ${(props) => (props.isActivePage ? "bold" : "normal")};
 `;
 
 const CenterBox = styled.div`
-  width: 100%;
-  height: 100%;
+  aspect-ratio: 1 / 1;
+  height: 90%;
   background-color: ${primary};
   border-radius: 50%;
-  margin: 1%;
+  margin: 10%;
   display: flex;
   justify-content: center;
   align-items: center;
 
   & > img {
     padding: 20% 20% 20% 20%;
-    width: 45%;
+    width: 60%;
   }
 `;
 
 export default function Footer() {
   const { userId } = userStore();
+  const location = useLocation();
+
   return (
     <>
       <Outlet />
       <Wrapper>
         <Block to="/">
-          <Image src={HomeIcon}></Image>
-          <Title>홈</Title>
+          <ImageContainer>
+            {location.pathname === "/" ? (
+              <HomeIconImage src={HomeIconPrimary}></HomeIconImage>
+            ) : (
+              <HomeIconImage src={HomeIcon}></HomeIconImage>
+            )}
+          </ImageContainer>
+
+          <Title isActivePage={location.pathname === "/"}>홈</Title>
         </Block>
 
         <Block to="/search">
-          <Image src={SearchIcon}></Image>
-          <Title>어종검색</Title>
+          <ImageContainer>
+            {location.pathname === "/search" ? (
+              <Image src={SearchIconPrimary}></Image>
+            ) : (
+              <Image src={SearchIcon}></Image>
+            )}
+          </ImageContainer>
+
+          <Title isActivePage={location.pathname === "/search"}>어종검색</Title>
         </Block>
 
         <Block to="/scan">
@@ -98,12 +135,24 @@ export default function Footer() {
         </Block>
 
         <Block to="/board">
-          <Image src={BoardIcon}></Image>
-          <Title>게시판</Title>
+          <ImageContainer>
+            {location.pathname === "/board" ? (
+              <Image src={BoardIconPrimary}></Image>
+            ) : (
+              <Image src={BoardIcon}></Image>
+            )}
+          </ImageContainer>
+          <Title isActivePage={location.pathname === "/board"}>게시판</Title>
         </Block>
         <Block to={userId == -1 ? `/login` : "/mypage"}>
-          <Image src={MyIcon}></Image>
-          <Title>MY</Title>
+          <ImageContainer>
+            {location.pathname === "/mypage" ? (
+              <Image src={MyIconPrimary}></Image>
+            ) : (
+              <Image src={MyIcon}></Image>
+            )}
+          </ImageContainer>
+          <Title isActivePage={location.pathname === "/mypage"}>MY</Title>
         </Block>
       </Wrapper>
     </>

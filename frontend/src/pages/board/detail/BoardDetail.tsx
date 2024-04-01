@@ -37,6 +37,7 @@ interface BoardType{
 interface review{
   reviewId : number
   fishId : number
+  fishName : string
   weight : number
   pricePerKg : number
   totalPrice : number
@@ -80,6 +81,7 @@ export default function BoardDetail() {
     if(userId && userId != -1){
       axiosInstance.get(`/api/board/${boardId}`)
         .then((res:AxiosResponse)=>{
+          console.log(res.data.data)
           setBoard(res.data.data)
         })
     }
@@ -101,7 +103,7 @@ export default function BoardDetail() {
             <BottomContent
               boardId={board.boardId}
               likeCount={board.likeCount}
-              commentCount={board.comments.length}
+              commentCount={board.comments.length}  
               liked = {board.liked}
               scraped = {board.scraped}
               change = {change}
