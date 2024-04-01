@@ -37,6 +37,7 @@ interface BoardType{
 interface review{
   reviewId : number
   fishId : number
+  fishName : string
   weight : number
   pricePerKg : number
   totalPrice : number
@@ -102,7 +103,7 @@ export default function BoardDetail() {
             <BottomContent
               boardId={board.boardId}
               likeCount={board.likeCount}
-              commentCount={board.comments.length}
+              commentCount={board.comments.length}  
               liked = {board.liked}
               scraped = {board.scraped}
               change = {change}

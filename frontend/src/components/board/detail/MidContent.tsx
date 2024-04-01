@@ -21,6 +21,7 @@ interface image{
 interface review{
   reviewId : number
   fishId : number
+  fishName : string
   weight : number
   pricePerKg : number
   totalPrice : number
