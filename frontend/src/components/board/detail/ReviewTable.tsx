@@ -27,7 +27,7 @@ const Thead = styled.thead`
     height : 40px;
 `
 
-const Tr = styled.tr`
+const Td = styled.td`
     height : 40px;
     text-align: center;
 `
@@ -47,11 +47,11 @@ export default function ReviewTable({reviews} : ReviewTableProps) {
             </Thead>
             <tbody>
                 {reviews && reviews.map((review => (
-                <>
-                    <Tr>{review.fishName}</Tr>
-                    <Tr>{review.weight}</Tr>
-                    <Tr>{review.totalPrice}</Tr>
-                </>
+                <tr>
+                    <Td>{review.fishName}</Td>
+                    <Td>{review.weight}</Td>
+                    <Td>{review.totalPrice}</Td>
+                </tr>
                 )))}
             </tbody>
         </Table>
