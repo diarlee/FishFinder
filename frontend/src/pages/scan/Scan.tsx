@@ -136,6 +136,11 @@ export default function Scan() {
   const [loading, setLoading] = useState(false);
   const video = videoRef.current;
   const photo = photoRef.current;
+  const [isOpen, setIsOpen] = useState(false);
+  // const ref = useRef<SheetRef>();
+  const navigate = useNavigate();
+  const [localStream, setLocalStream] = useState<MediaStream>();
+
   useEffect(() => {
     if (video && photo) {
       const resizeCanvas = () => {
@@ -152,6 +157,23 @@ export default function Scan() {
     }
   }, []);
 
+  useEffect(() => {
+    return () => {
+      console.log("unmount");
+      if (video) {
+        video.pause();
+        video.srcObject = null;
+      }
+      if (localStream) {
+        const vidTrack = localStream.getVideoTracks();
+        vidTrack.forEach((track) => {
+          localStream.removeTrack(track);
+          track.stop();
+        });
+      }
+    };
+  }, []);
+
   const getVideo = () => {
     // 미디어 설정에서 후면 카메라를 지정
     const constraints = {
@@ -162,6 +184,7 @@ export default function Scan() {
       .getUserMedia(constraints)
       .then((stream) => {
         // video 태그의 소스로 스트림을 지정
+        setLocalStream(stream);
         const video = videoRef.current;
         if (video) {
           video.srcObject = stream;
@@ -266,10 +289,6 @@ export default function Scan() {
       setIsOpen(true);
     });
   };
-
-  const [isOpen, setIsOpen] = useState(false);
-  // const ref = useRef<SheetRef>();
-  const navigate = useNavigate();
 
   const handleSnap = (snapIndex: number) => {
     if (snapIndex === 0) {
