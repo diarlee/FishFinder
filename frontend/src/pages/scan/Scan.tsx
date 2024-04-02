@@ -150,43 +150,36 @@ export default function Scan() {
   const [photoHeight, setPhotoHeight] = useState(0);
   const [boxdata, setBoxData] = useState<FishScanData[]>([]);
   const [loading, setLoading] = useState(false);
-  const video = videoRef.current;
-  const photo = photoRef.current;
   const [isOpen, setIsOpen] = useState(false);
   // const ref = useRef<SheetRef>();
   const navigate = useNavigate();
-  const [localStream, setLocalStream] = useState<MediaStream>();
+  const localStream = useRef<MediaStream>();
 
   useEffect(() => {
-    if (video && photo) {
-      const resizeCanvas = () => {
-        photo.width = video.videoWidth;
-        photo.height = video.videoHeight;
-      };
+    getVideo();
 
-      window.addEventListener("resize", resizeCanvas);
-      resizeCanvas();
-
-      return () => {
-        window.removeEventListener("resize", resizeCanvas);
-      };
-    }
-  }, []);
-
-  useEffect(() => {
     return () => {
-      console.log("unmount");
-      if (video) {
-        video.pause();
-        video.srcObject = null;
+      function removeVideo() {
+        console.log("unmount");
+        const video = videoRef.current;
+        console.log(video);
+        if (video) {
+          console.log("video");
+          video.pause();
+          video.srcObject = null;
+        }
+        if (localStream.current) {
+          const vidTrack = localStream.current.getVideoTracks();
+          vidTrack?.forEach((track) => {
+            console.log(track);
+            track.stop();
+            localStream.current?.removeTrack(track);
+          });
+          localStream.current = undefined;
+          console.log(localStream);
+        }
       }
-      if (localStream) {
-        const vidTrack = localStream.getVideoTracks();
-        vidTrack.forEach((track) => {
-          localStream.removeTrack(track);
-          track.stop();
-        });
-      }
+      removeVideo();
     };
   }, []);
 
@@ -200,7 +193,6 @@ export default function Scan() {
       .getUserMedia(constraints)
       .then((stream) => {
         // video 태그의 소스로 스트림을 지정
-        setLocalStream(stream);
         const video = videoRef.current;
         if (video) {
           video.srcObject = stream;
@@ -209,6 +201,8 @@ export default function Scan() {
               console.error("Failed to play video:", error);
             });
           };
+          console.log(stream);
+          localStream.current = stream;
         } else {
           console.error("Video element not found.");
         }
@@ -281,10 +275,6 @@ export default function Scan() {
     setPhotoTaken(true);
   };
 
-  useEffect(() => {
-    getVideo();
-  }, []);
-
   const [fishdata, setFishData] = useState({
     name: "",
     otherPrice: 0,
@@ -295,7 +285,7 @@ export default function Scan() {
 
   const reTakePhoto = () => {
     setPhotoTaken(false);
-    getVideo();
+    videoRef.current?.play();
     setBoxData([]);
   };
 
@@ -314,7 +304,7 @@ export default function Scan() {
   };
 
   const navigateBack = () => {
-    video?.pause();
+    videoRef.current?.pause();
     navigate(-1);
   };
 
