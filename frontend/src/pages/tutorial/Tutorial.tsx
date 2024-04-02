@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import styled from "styled-components";
@@ -71,6 +71,7 @@ function Tutorial() {
 
   return (
     <div>
+      <FloatingAlarm />
       <CenterWrapper height="95vh">
         <div>수산시장 이용 도우미</div>
         <CenterWrapper>
@@ -166,6 +167,49 @@ function Tutorial() {
         <Link to="/">홈으로</Link>
         <p>본 서비스는 Andriod 환경에 최적화되어 있습니다.</p>
       </CenterWrapper>
+    </div>
+  );
+}
+
+function FloatingAlarm() {
+  const [deferredPrompt, setDeferredPrompt] = useState<Event | null>();
+
+  const handleBeforeInstallPrompt = (event: Event) => {
+    event.preventDefault();
+    setDeferredPrompt(event);
+  };
+
+  const handleInstall = () => {
+    if (deferredPrompt) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (deferredPrompt as any).prompt();
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (deferredPrompt as any).userChoice.then((choiceResult: any) => {
+        if (choiceResult.outcome === "accepted") {
+          console.log("사용자가 앱 설치를 동의했습니다.");
+        } else {
+          console.log("사용자가 앱 설치를 동의하지 않았습니다.");
+        }
+
+        setDeferredPrompt(null);
+      });
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt
+      );
+    };
+  }, []);
+  return (
+    <div>
+      {deferredPrompt && <button onClick={handleInstall}>Install</button>}
     </div>
   );
 }
