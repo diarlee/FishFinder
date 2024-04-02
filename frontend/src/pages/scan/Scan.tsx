@@ -73,6 +73,22 @@ const ScanButton = styled.img`
   bottom: 15%;
 `;
 
+const RetakeNotice = styled.div`
+  position: absolute;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: White;
+  font-size: 20px;
+  bottom: 30%;
+
+  & > p {
+    margin: 2%;
+  }
+`;
+
 const Info = styled.div`
   display: flex;
   height: 10vh;
@@ -363,6 +379,11 @@ export default function Scan() {
                 }}
               ></ScanBox>
             ))}
+          {photoTaken && boxdata.length === 0 && (
+            <RetakeNotice>
+              <p>어종을 찾을 수 없습니다.</p> <p> 다시 촬영해주세요</p>
+            </RetakeNotice>
+          )}
         </VideoBox>
         <ScanButton
           style={{ display: photoTaken ? "none" : "block" }}
@@ -391,7 +412,7 @@ export default function Scan() {
             <Sheet.Header />
             <Sheet.Content>
               <FishInfo>
-                <Image src={fishdata.imgUri} />
+                <Image src={fishdata.imgUri} alt={fishdata.name} />
                 <p>{fishdata.name}</p>
                 <Table>
                   <thead>

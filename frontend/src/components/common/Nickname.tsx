@@ -86,19 +86,18 @@ const SubmitButton = styled(Button)<{ hasValue: boolean }>`
   border: none;
 `;
 
-
-interface NickNameProps{
-  title : string,
-  url : string
+interface NickNameProps {
+  title: string;
+  url: string;
 }
 
-export default function NickName({title, url} : NickNameProps) {
+export default function NickName({ title, url }: NickNameProps) {
   const { nickname, setNickName } = userStore();
   const navigate = useNavigate();
 
   const onSubmit = () => {
     axiosInstance
-      .post("/api/members/update", {
+      .put("/api/users/update", {
         nickname: { nickname },
       })
       .then((res: AxiosResponse) => {
@@ -131,7 +130,7 @@ export default function NickName({title, url} : NickNameProps) {
           {hasValue && (
             <DeleteButton
               src={valueDelete}
-              alt=""
+              alt="값 삭제 버튼"
               onClick={() => setNickName("")}
             />
           )}
@@ -146,7 +145,7 @@ export default function NickName({title, url} : NickNameProps) {
           fontSize="18px"
           padding="2% 4% 2% 4%"
           margin="0% 4% 2% 0%"
-          onSubmit={onSubmit}
+          onClick={onSubmit}
           disabled={!hasValue}
         >
           {title}
