@@ -20,7 +20,6 @@ import NickName from "./components/common/Nickname";
 import Tutorial from "./pages/tutorial/Tutorial";
 import { userStore } from "./stores/userStore";
 import { axiosInstance } from "./services/axios";
-import { AxiosResponse } from "axios";
 
 const Wrapper = styled.div`
   font-family: Pretendard;
