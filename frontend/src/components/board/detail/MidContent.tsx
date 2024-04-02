@@ -111,7 +111,7 @@ export default function MidContent({
       >
         <ImageContainer
           src={modalImage}
-          alt="썸네일"
+          alt="모달이미지"
           width="100%"
           height="100%"
           objectFit="contain"
