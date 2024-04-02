@@ -15,6 +15,7 @@ import search from "../../assets/images/tutorial/검색.png";
 import board from "../../assets/images/tutorial/게시판.png";
 import Login from "../login/Login";
 import useMoveScroll from "./useMoveScroll";
+import download from "../../assets/icons/download.svg";
 
 interface TagBoxProps {
   active: boolean;
@@ -62,6 +63,33 @@ const MarginWrapper = styled.div`
 
 const Image = styled.img`
   display: block;
+`;
+
+const DownloadWrapper = styled.div`
+  position: fixed;
+  top: 5%;
+  left: 50%;
+  width: 80%;
+  height: 50px;
+  background-color: ${primary};
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: translate(-50%, 0);
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.25),
+    0 10px 10px rgba(0, 0, 0, 0.22);
+  z-index: 100000;
+
+  & > p {
+    font-size: 14px;
+    margin-right: 13px;
+    color: white;
+  }
+`;
+const DownloadImage = styled.img`
+  height: 70%;
 `;
 
 function Tutorial() {
@@ -208,9 +236,18 @@ function FloatingAlarm() {
     };
   }, []);
   return (
-    <div>
-      {deferredPrompt && <button onClick={handleInstall}>Install</button>}
-    </div>
+    <>
+      {deferredPrompt && (
+        <DownloadWrapper>
+          <p>앱을 설치하고 더 편하게 사용하세요</p>
+          <DownloadImage
+            src={download}
+            onClick={handleInstall}
+            alt="다운로드"
+          />
+        </DownloadWrapper>
+      )}
+    </>
   );
 }
 
