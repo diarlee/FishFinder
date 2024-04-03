@@ -68,6 +68,10 @@ export default function Header({fishDatas} : HeaderProps) {
   const onClickSubmitBtn = async () => {
     const formatFormRevies : Review[] = [];
 
+    if(!reviewForms || reviewForms.length<=0){
+      submitData();
+    }
+
     for(let i=0;i<reviewForms.length;i++){
       if(!fishDatas.has(reviewForms[i].review.name)){
         alert("어종을 정확히 입력해주세요") 
