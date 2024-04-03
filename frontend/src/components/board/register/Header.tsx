@@ -67,7 +67,7 @@ export default function Header({fishDatas} : HeaderProps) {
 
   const onClickSubmitBtn = async () => {
     const formatFormRevies : Review[] = [];
-
+    
     if(!reviewForms || reviewForms.length<=0){
       submitData();
     }
