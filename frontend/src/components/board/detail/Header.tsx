@@ -4,8 +4,9 @@ import { useNavigate } from "react-router-dom";
 
 import BackButton from "../../common/BackButton";
 import IconButton from "../../common/IconButton";
+import TrashIcon from "../../../assets/icons/trash.svg";
 import ExportIcon from "../../../assets/icons/export.svg";
-import MenuIcon from "../../../assets/icons/dotsThree.svg";
+// import MenuIcon from "../../../assets/icons/dotsThree.svg";
 import { axiosInstance } from "../../../services/axios";
 import { AxiosResponse } from "axios";
 import { userStore } from "../../../stores/userStore";
@@ -45,17 +46,20 @@ export default function Header({boardId, writerId} : HeaderProps) {
   const {userId} = userStore();
 
   const onClickBackBtn = () => {
-    navigate('/board');
+    navigate("/board");
   };
 
   const onClickDeleteBtn = () => {
-    axiosInstance.delete(`/api/board/${boardId}`)
-      .then((res : AxiosResponse)=>{
+    axiosInstance
+      .delete(`/api/board/${boardId}`)
+      .then((res: AxiosResponse) => {
         console.log(res.data.message);
-        navigate(-1)
+        navigate(-1);
       })
-      .catch(error => {throw new Error(error.message)})
-  }
+      .catch((error) => {
+        throw new Error(error.message);
+      });
+  };
 
   return (
     <Wrapper>
