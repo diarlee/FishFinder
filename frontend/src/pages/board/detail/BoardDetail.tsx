@@ -93,7 +93,7 @@ export default function BoardDetail() {
     <StyledWrapper>
       {board && (
         <>
-        <Header boardId={board?.boardId}/>
+        <Header boardId={board.boardId}/>
         <Contents>
           <TopContents
             postType={board.postType}
