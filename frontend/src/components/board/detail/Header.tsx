@@ -28,7 +28,7 @@ const Wrapper = styled.div`
   justify-content: space-between;
 
   & > div {
-    width: auto;
+    width: 15%;
     margin: 5% 0 5% 0;
 
     display: flex;
@@ -72,7 +72,7 @@ export default function Header({boardId, writerId} : HeaderProps) {
             <IconButton width="45%" icon={TrashIcon} onClick = {onClickDeleteBtn}></IconButton>
           ):
           (
-            <div></div>
+            <div style={{width : '45%'}}></div>
           )
         }
         <IconButton width="45%" icon={ExportIcon}></IconButton>
